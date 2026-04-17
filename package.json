@@ -1,0 +1,30 @@
+{
+  "name": "pi-extension-opencode-go",
+  "version": "1.0.0",
+  "description": "OpenCode Go provider extension for pi coding agent",
+  "type": "module",
+  "main": "src/index.ts",
+  "files": [
+    "src/index.ts"
+  ],
+  "keywords": [
+    "pi",
+    "pi-extension",
+    "opencode",
+    "opencode-go",
+    "ai",
+    "provider"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mariozechner/pi-extension-opencode-go.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}
