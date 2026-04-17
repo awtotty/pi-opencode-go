@@ -1,7 +1,7 @@
 {
-  "name": "pi-opencode-go",
+  "name": "pi-opencode",
   "version": "1.0.0",
-  "description": "OpenCode Go provider extension for pi coding agent",
+  "description": "OpenCode provider extension for pi coding agent — Zen and Go models",
   "type": "module",
   "main": "src/index.ts",
   "files": [
@@ -11,13 +11,14 @@
     "pi",
     "pi-extension",
     "opencode",
+    "opencode-zen",
     "opencode-go",
     "ai",
     "provider"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/awtotty/pi-opencode-go.git"
+    "url": "https://github.com/awtotty/pi-opencode.git"
   },
   "engines": {
     "node": ">=18.0.0"

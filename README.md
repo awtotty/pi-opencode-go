@@ -1,18 +1,19 @@
-# pi-opencode-go
+# pi-opencode
 
-OpenCode Go provider extension for [pi](https://github.com/mariozechner/pi-coding-agent) coding agent.
+OpenCode provider extension for [pi](https://github.com/mariozechner/pi-coding-agent) coding agent.
 
-This extension gives pi access to OpenCode Go models - a $10/month subscription service that provides access to various open coding models.
+Access OpenCode Zen (cash balance) and OpenCode Go (subscription credits) models.
 
 ## Features
 
-- **OpenAI-compatible models**: GLM 5.1, GLM 5, Kimi K2.5, MiMo V2 Pro, MiMo V2 Omni, Qwen 3.6 Plus, Qwen 3.5 Plus
-- **Anthropic-compatible models**: MiniMax M2.7, MiniMax M2.5
+- **opencode-zen** / **opencode-zen-anthropic**: Pay-as-you-go (https://opencode.ai/zen)
+- **opencode-go** / **opencode-go-anthropic**: Subscription credits (https://opencode.ai/zen/go)
+- **40+ models**: GPT, Claude, Gemini, GLM, Kimi, Qwen, MiniMax, and more
 
 ## Prerequisites
 
 - [pi](https://github.com/mariozechner/pi-coding-agent) installed
-- OpenCode Go subscription at https://opencode.ai/auth
+- OpenCode account at https://opencode.ai/auth
 
 ## Installation
 
@@ -23,7 +24,7 @@ Add to your pi `settings.json` (`~/.pi/agent/settings.json`):
 ```json
 {
   "packages": [
-    "git:https://github.com/awtotty/pi-opencode-go.git"
+    "git:https://github.com/awtotty/pi-opencode.git"
   ]
 }
 ```
@@ -31,39 +32,24 @@ Add to your pi `settings.json` (`~/.pi/agent/settings.json`):
 ### Option 2: Clone locally
 
 ```bash
-git clone https://github.com/awtotty/pi-opencode-go.git ~/.pi/agent/extensions/pi-opencode-go
-```
-
-### Option 3: Global install via npm
-
-```bash
-npm install -g pi-opencode-go
-```
-
-Then add to settings.json:
-
-```json
-{
-  "packages": [
-    "npm:pi-opencode-go"
-  ]
-}
+git clone https://github.com/awtotty/pi-opencode.git ~/.pi/agent/extensions/pi-opencode
 ```
 
 ## Configuration
 
 ### 1. Get your API key
 
-1. Subscribe to OpenCode Go at https://opencode.ai/auth
-2. Copy your API key from the dashboard
+1. Sign up at https://opencode.ai/auth
+2. Add billing for Zen or subscribe to Go
+3. Copy your API key
 
 ### 2. Set the environment variable
 
 ```bash
-export OPENCODE_GO_API_KEY="your-api-key-here"
+export OPENCODE_API_KEY="your-api-key-here"
 ```
 
-Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.) to persist it.
+Add to shell profile (~/.bashrc, ~/.zshrc, etc.) to persist.
 
 ### 3. Reload pi
 
@@ -73,57 +59,44 @@ Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.) to persist it.
 
 ## Usage
 
-### Select a model
-
-Use the `/model` command to switch to an OpenCode Go model:
+### Select a provider and model
 
 ```
-/model glm-5.1
+/model opencode-zen/gpt-5.1
+/model opencode-go-anthropic/minimax-m2.7
 ```
 
-Or cycle through models with `Ctrl+P`.
+Or use `/model` to browse all available options.
 
-### Available Models
+### Available Providers
 
-#### OpenAI-compatible (opencode-go provider)
+| Provider | API | Endpoint |
+|----------|-----|----------|
+| opencode-zen | OpenAI Chat Completions | https://opencode.ai/zen/v1/chat/completions |
+| opencode-zen-anthropic | Anthropic Messages | https://opencode.ai/zen/v1/messages |
+| opencode-go | OpenAI Chat Completions | https://opencode.ai/zen/go/v1/chat/completions |
+| opencode-go-anthropic | Anthropic Messages | https://opencode.ai/zen/go/v1/messages |
 
-| Model | Reasoning | Vision | Context Window |
-|-------|-----------|--------|----------------|
-| GLM 5.1 | ✅ | ❌ | 128K |
-| GLM 5 | ✅ | ❌ | 128K |
-| Kimi K2.5 | ✅ | ✅ | 262K |
-| MiMo V2 Pro | ✅ | ❌ | 128K |
-| MiMo V2 Omni | ✅ | ✅ | 128K |
-| Qwen 3.6 Plus | ❌ | ❌ | 1M |
-| Qwen 3.5 Plus | ❌ | ❌ | 1M |
-
-#### Anthropic-compatible (opencode-go-anthropic provider)
-
-| Model | Reasoning | Vision | Context Window |
-|-------|-----------|--------|----------------|
-| MiniMax M2.7 | ✅ | ❌ | 1M |
-| MiniMax M2.5 | ❌ | ❌ | 1M |
+> MiniMax M2.7 and M2.5 use the Anthropic Messages API. All other models use OpenAI Chat Completions.
 
 ## Troubleshooting
 
 ### "No API key" error
 
-Make sure you've set the `OPENCODE_GO_API_KEY` environment variable:
-
 ```bash
-echo $OPENCODE_GO_API_KEY
+echo $OPENCODE_API_KEY
 ```
 
 If empty, set it and reload pi:
 
 ```bash
-export OPENCODE_GO_API_KEY="your-key"
-pi
+export OPENCODE_API_KEY="your-key"
+/reload
 ```
 
 ### Extension not loading
 
-Check that the extension path is correct in settings.json and run `/reload`.
+Run `/reload` after changes.
 
 ### Model not found
 
@@ -133,13 +106,10 @@ Verify the model name is correct. Model IDs are case-sensitive.
 
 ```bash
 # Clone the repository
-git clone https://github.com/awtotty/pi-opencode-go.git
-cd pi-opencode-go
+git clone https://github.com/awtotty/pi-opencode.git
+cd pi-opencode
 
-# Install dependencies (if any)
-npm install
-
-# Test locally with pi
+# Test locally
 pi -e ./src/index.ts
 ```
 
@@ -150,5 +120,6 @@ MIT
 ## Links
 
 - [pi coding agent](https://github.com/mariozechner/pi-coding-agent)
+- [OpenCode Zen](https://opencode.ai/docs/zen/)
 - [OpenCode Go](https://opencode.ai/docs/go/)
-- [OpenCode Go Subscription](https://opencode.ai/auth)
+- [OpenCode](https://opencode.ai/auth)
