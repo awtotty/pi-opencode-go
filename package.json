@@ -1,6 +1,6 @@
 {
   "name": "pi-opencode",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OpenCode provider extension for pi coding agent — Zen and Go models",
   "license": "MIT",
   "type": "module",
