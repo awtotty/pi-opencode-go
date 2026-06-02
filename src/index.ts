@@ -19,8 +19,8 @@
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 
-type Modality = "text" | "image";
-interface ModelDef {
+type Modality = "text" | "image" | "audio" | "video";
+interface ModelDefinition {
 	id: string;
 	name: string;
 	reasoning: boolean;
@@ -35,7 +35,7 @@ const OAI_COMPAT = {
 	maxTokensField: "max_tokens" as const,
 };
 
-function toOpenAIModel(m: ModelDef) {
+function toOpenAIModel(m: ModelDefinition) {
 	return {
 		id: m.id,
 		name: m.name,
@@ -48,7 +48,7 @@ function toOpenAIModel(m: ModelDef) {
 	};
 }
 
-function toAnthropicModel(m: ModelDef) {
+function toAnthropicModel(m: ModelDefinition) {
 	return {
 		id: m.id,
 		name: m.name,
@@ -60,11 +60,47 @@ function toAnthropicModel(m: ModelDef) {
 	};
 }
 
+// ───────── OpenCode Go ─────────
+
+
+const GO_ANTHROPIC_MODELS: ModelDefinition[] = [
+	{ id: "minimax-m3", name: "MiniMax M3", reasoning: true, input: ["text", "image"], contextWindow: 1000000, maxTokens: 65536 },
+	{ id: "minimax-m2.7", name: "MiniMax M2.7", reasoning: true, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
+	{ id: "minimax-m2.5", name: "MiniMax M2.5", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
+];
+
+const GO_OPENAI_MODELS: ModelDefinition[] = [
+ 	{ id: "deepseek-v4-pro", name: "DeepSeek V4 Pro", reasoning: true, input: ["text"], contextWindow: 1000000, maxTokens: 384000 },
+  { id: "deepseek-v4-flash", name: "DeepSeek V4 Flash", reasoning: true, input: ["text"], contextWindow: 1000000, maxTokens: 384000 },
+  { id: "mimo-v2.5-pro", name: "MiMo V2.5 Pro", reasoning: true, input: ["text"], contextWindow: 1048576, maxTokens: 32768 },
+	{ id: "mimo-v2.5", name: "MiMo V2.5", reasoning: true, input: ["text", "image", "audio", "video"], contextWindow: 1000000, maxTokens: 32768 },
+	{ id: "kimi-k2.6", name: "Kimi K2.6", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
+	{ id: "kimi-k2.5", name: "Kimi K2.5", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
+	{ id: "glm-5.1", name: "GLM 5.1", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
+	{ id: "glm-5", name: "GLM 5", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
+	{ id: "qwen3.6-plus", name: "Qwen 3.6 Plus", reasoning: true, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
+	{ id: "qwen3.5-plus", name: "Qwen 3.5 Plus", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
+];
+
 // ───────── OpenCode Zen ─────────
 
-// OpenAI Chat Completions compatible models (GPT / Gemini / Qwen / GLM / Kimi / etc.)
-const ZEN_OPENAI_MODELS: ModelDef[] = [
+// Anthropic Messages API models (Claude family + MiniMax)
+const ZEN_ANTHROPIC_MODELS: ModelDefinition[] = [
+  { id: "minimax-m3-free", name: "MiniMax M3 Free", reasoning: true, input: ["text", "image"], contextWindow: 1000000, maxTokens: 65536 },
+ 	{ id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
+	{ id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 16384 },
+	{ id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
+	{ id: "claude-opus-4-6", name: "Claude Opus 4.6", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
+	{ id: "claude-opus-4-5", name: "Claude Opus 4.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
+	{ id: "claude-opus-4-1", name: "Claude Opus 4.1", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
+	{ id: "claude-haiku-4-5", name: "Claude Haiku 4.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 8192 },
+  { id: "claude-3-5-haiku", name: "Claude Haiku 3.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 8192 },
+];
+
+// OpenAI "Chat Completions" compatible models (GPT / Gemini / Qwen / GLM / Kimi / etc.)
+const ZEN_OPENAI_MODELS: ModelDefinition[] = [
 	// GPT
+	{ id: "gpt-5.5", name: "GPT 5.5", reasoning: true, input: ["text"], contextWindow: 1000000, maxTokens: 32000 },
 	{ id: "gpt-5.4", name: "GPT 5.4", reasoning: true, input: ["text"], contextWindow: 200000, maxTokens: 32000 },
 	{ id: "gpt-5.4-pro", name: "GPT 5.4 Pro", reasoning: true, input: ["text"], contextWindow: 200000, maxTokens: 32000 },
 	{ id: "gpt-5.4-mini", name: "GPT 5.4 Mini", reasoning: true, input: ["text"], contextWindow: 200000, maxTokens: 32000 },
@@ -89,79 +125,47 @@ const ZEN_OPENAI_MODELS: ModelDef[] = [
 	// Open models via chat completions
 	{ id: "qwen3.6-plus", name: "Qwen 3.6 Plus", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
 	{ id: "qwen3.5-plus", name: "Qwen 3.5 Plus", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
-	{ id: "minimax-m2.5-free", name: "MiniMax M2.5 Free", reasoning: false, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
 	{ id: "glm-5.1", name: "GLM 5.1", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
 	{ id: "glm-5", name: "GLM 5", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
 	{ id: "glm-4.7", name: "GLM 4.7", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
-	{ id: "glm-4.6", name: "GLM 4.6", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
+  { id: "glm-4.6", name: "GLM 4.6", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
+  { id: "kimi-k2.6", name: "Kimi K2.6", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
 	{ id: "kimi-k2.5", name: "Kimi K2.5", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
-	{ id: "kimi-k2", name: "Kimi K2", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
-	{ id: "kimi-k2-thinking", name: "Kimi K2 Thinking", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
-	{ id: "big-pickle", name: "Big Pickle", reasoning: false, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
 	{ id: "nemotron-3-super-free", name: "Nemotron 3 Super Free", reasoning: false, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
 ];
 
-// Anthropic Messages API models (Claude family + MiniMax)
-const ZEN_ANTHROPIC_MODELS: ModelDef[] = [
-	{ id: "claude-opus-4-7", name: "Claude Opus 4.7", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
-	{ id: "claude-opus-4-6", name: "Claude Opus 4.6", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
-	{ id: "claude-opus-4-5", name: "Claude Opus 4.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
-	{ id: "claude-opus-4-1", name: "Claude Opus 4.1", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
-	{ id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 32000 },
-	{ id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 16384 },
-	{ id: "claude-sonnet-4", name: "Claude Sonnet 4", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 16384 },
-	{ id: "claude-haiku-4-5", name: "Claude Haiku 4.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 8192 },
-	{ id: "claude-3-5-haiku", name: "Claude Haiku 3.5", reasoning: true, input: ["text", "image"], contextWindow: 200000, maxTokens: 8192 },
-	{ id: "minimax-m2.5", name: "MiniMax M2.5", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
-];
-
-// ───────── OpenCode Go ─────────
-
-const GO_OPENAI_MODELS: ModelDef[] = [
-	{ id: "glm-5.1", name: "GLM 5.1", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
-	{ id: "glm-5", name: "GLM 5", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 16384 },
-	{ id: "kimi-k2.5", name: "Kimi K2.5", reasoning: true, input: ["text", "image"], contextWindow: 262144, maxTokens: 65536 },
-	{ id: "mimo-v2-pro", name: "MiMo V2 Pro", reasoning: true, input: ["text"], contextWindow: 128000, maxTokens: 32768 },
-	{ id: "mimo-v2-omni", name: "MiMo V2 Omni", reasoning: true, input: ["text", "image"], contextWindow: 128000, maxTokens: 32768 },
-	{ id: "qwen3.6-plus", name: "Qwen 3.6 Plus", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
-	{ id: "qwen3.5-plus", name: "Qwen 3.5 Plus", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
-];
-
-const GO_ANTHROPIC_MODELS: ModelDef[] = [
-	{ id: "minimax-m2.7", name: "MiniMax M2.7", reasoning: true, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
-	{ id: "minimax-m2.5", name: "MiniMax M2.5", reasoning: false, input: ["text"], contextWindow: 1000000, maxTokens: 65536 },
-];
 
 export default function (pi: ExtensionAPI) {
-	// Zen — OpenAI Chat Completions
-	pi.registerProvider("opencode-zen", {
-		baseUrl: "https://opencode.ai/zen/v1",
-		apiKey: "OPENCODE_API_KEY",
-		api: "openai-completions",
-		models: ZEN_OPENAI_MODELS.map(toOpenAIModel),
-	});
 
-	// Zen — Anthropic Messages (Claude family + MiniMax)
-	pi.registerProvider("opencode-zen-anthropic", {
-		baseUrl: "https://opencode.ai/zen",
-		apiKey: "OPENCODE_API_KEY",
-		api: "anthropic-messages",
-		models: ZEN_ANTHROPIC_MODELS.map(toAnthropicModel),
-	});
-
-	// Go — OpenAI Chat Completions
+  // Go — OpenAI Chat Completions
 	pi.registerProvider("opencode-go", {
 		baseUrl: "https://opencode.ai/zen/go/v1",
-		apiKey: "OPENCODE_API_KEY",
+		apiKey: "$OPENCODE_API_KEY",
 		api: "openai-completions",
 		models: GO_OPENAI_MODELS.map(toOpenAIModel),
 	});
 
-	// Go — Anthropic Messages (MiniMax)
+	// Go — Anthropic Messages (Claude + MiniMax)
 	pi.registerProvider("opencode-go-anthropic", {
 		baseUrl: "https://opencode.ai/zen/go",
-		apiKey: "OPENCODE_API_KEY",
+		apiKey: "$OPENCODE_API_KEY",
 		api: "anthropic-messages",
 		models: GO_ANTHROPIC_MODELS.map(toAnthropicModel),
+	});
+
+  // Zen — OpenAI Chat Completions
+	pi.registerProvider("opencode-zen", {
+		baseUrl: "https://opencode.ai/zen/v1",
+		apiKey: "$OPENCODE_API_KEY",
+		api: "openai-completions",
+		models: ZEN_OPENAI_MODELS.map(toOpenAIModel),
+	});
+
+	// Zen — Anthropic Messages (Claude + MiniMax)
+	pi.registerProvider("opencode-zen-anthropic", {
+		baseUrl: "https://opencode.ai/zen",
+		apiKey: "$OPENCODE_API_KEY",
+		api: "anthropic-messages",
+		models: ZEN_ANTHROPIC_MODELS.map(toAnthropicModel),
 	});
 }
